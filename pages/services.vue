@@ -6,7 +6,7 @@
 
     <div class="text-center mb-10">
       <h1 class="section-heading mb-3">Our Services</h1>
-      <p class="section-subheading">Everything your dog needs to look and feel their best.</p>
+      <p class="section-subheading">Clear, practical grooming services tailored to your dog's needs.</p>
     </div>
 
     <div class="max-w-3xl mx-auto space-y-6">

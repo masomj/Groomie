@@ -35,7 +35,7 @@ async function handleSubmit() {
 
     <div class="text-center mb-10">
       <h1 class="section-heading mb-3">Contact Us</h1>
-      <p class="section-subheading">We'd love to hear from you. Send us a message or find our details below.</p>
+      <p class="section-subheading">Questions, quotes, or booking help — send a message and we’ll get back to you.</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">

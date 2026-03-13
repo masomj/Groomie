@@ -5,8 +5,8 @@
     </Head>
 
     <div class="text-center mb-10">
-      <h1 class="section-heading mb-3">About Us</h1>
-      <p class="section-subheading">Passionate about dogs. Professional in every way.</p>
+      <h1 class="section-heading mb-3">About</h1>
+      <p class="section-subheading">Calm, one-to-one dog grooming with a professional, practical approach.</p>
     </div>
 
     <div class="max-w-3xl mx-auto">
@@ -14,8 +14,8 @@
         <div class="space-y-5 text-gray-600 leading-relaxed">
           <p>
             At Pampered Pooch Porthcawl, I am fully qualified and have spent most of my professional life
-            around animals. Having worked in veterinary practices, other groomers, and achieved a
-            <strong class="text-gray-900">Level 5 Diploma in Veterinary Nursing</strong>, your pup is in good hands here with me.
+            working around animals. I have experience in veterinary practices and other grooming settings,
+            and hold a <strong class="text-gray-900">Level 5 Diploma in Veterinary Nursing</strong>.
           </p>
 
           <p>

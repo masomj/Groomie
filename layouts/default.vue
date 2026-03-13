@@ -181,10 +181,15 @@
 
         <div class="border-t border-gray-800 mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3">
           <span class="text-sm text-gray-500">&copy; {{ new Date().getFullYear() }} Pampered Pooch Porthcawl. All rights reserved.</span>
-          <NuxtLink to="/privacy" class="text-sm text-gray-500 hover:text-white transition-colors">Privacy Policy</NuxtLink>
+          <div class="flex items-center gap-4">
+            <NuxtLink to="/privacy" class="text-sm text-gray-500 hover:text-white transition-colors">Privacy Policy</NuxtLink>
+            <NuxtLink to="/cookie-preferences" class="text-sm text-gray-500 hover:text-white transition-colors">Cookie Preferences</NuxtLink>
+          </div>
         </div>
       </div>
     </footer>
+
+    <CookieBanner />
   </div>
 </template>
 

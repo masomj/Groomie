@@ -7,7 +7,7 @@
     <div class="text-center mb-10">
       <h1 class="section-heading mb-3">Pricing</h1>
       <p class="section-subheading">
-        Prices vary depending on breed, size, and coat condition. Get in touch for an accurate quote.
+        Transparent guide prices. Final pricing depends on breed, size, coat condition, and the time needed.
       </p>
     </div>
 
