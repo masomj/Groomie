@@ -1,73 +1,149 @@
-import { describe, it, expect, vi } from 'vitest'
-import Stripe from 'stripe'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-describe('Webhook Signature Verification', () => {
-  it('rejects requests with missing stripe-signature header', () => {
-    const sig = undefined
-    expect(sig).toBeUndefined()
-    // The webhook handler throws 400 when sig is missing
+const mocked = vi.hoisted(() => ({
+  getHeader: vi.fn(),
+  readRawBody: vi.fn(),
+  constructEvent: vi.fn(),
+  findStripeEvent: vi.fn(),
+  createStripeEvent: vi.fn(),
+  findPaymentByCheckoutSession: vi.fn(),
+  findPaymentByProviderRef: vi.fn(),
+  updatePayment: vi.fn(),
+  updateAppointment: vi.fn(),
+  transaction: vi.fn(),
+  createInvoiceForPayment: vi.fn(),
+  sendPaymentConfirmation: vi.fn(),
+}))
+
+vi.mock('~/server/utils/stripe', () => ({
+  getStripe: () => ({
+    webhooks: {
+      constructEvent: mocked.constructEvent,
+    },
+  }),
+}))
+
+vi.mock('~/server/utils/invoice', () => ({
+  createInvoiceForPayment: mocked.createInvoiceForPayment,
+}))
+
+vi.mock('~/server/utils/confirmation', () => ({
+  sendPaymentConfirmation: mocked.sendPaymentConfirmation,
+}))
+
+vi.mock('~/server/utils/prisma', () => ({
+  default: {
+    stripeEvent: {
+      findUnique: mocked.findStripeEvent,
+      create: mocked.createStripeEvent,
+    },
+    payment: {
+      findUnique: mocked.findPaymentByCheckoutSession,
+      findFirst: mocked.findPaymentByProviderRef,
+      update: mocked.updatePayment,
+    },
+    appointment: {
+      update: mocked.updateAppointment,
+    },
+    $transaction: mocked.transaction,
+  },
+}))
+
+vi.mock('h3', () => ({
+  defineEventHandler: (fn: any) => fn,
+  getHeader: (event: any, name: string) => mocked.getHeader(event, name),
+  readRawBody: (event: any) => mocked.readRawBody(event),
+  createError: ({ statusCode, statusMessage }: any) =>
+    Object.assign(new Error(statusMessage), { statusCode, statusMessage }),
+}))
+
+import handler from '../server/api/webhooks/stripe.post'
+
+describe('POST /api/webhooks/stripe', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    ;(globalThis as any).useRuntimeConfig = vi.fn(() => ({
+      stripeWebhookSecret: 'whsec_test',
+    }))
+    mocked.getHeader.mockReturnValue('sig_123')
+    mocked.readRawBody.mockResolvedValue('{"id":"evt_1"}')
+    mocked.findStripeEvent.mockResolvedValue(null)
+    mocked.createStripeEvent.mockResolvedValue({ id: 'evt_1', type: 'checkout.session.completed' })
+    mocked.constructEvent.mockReturnValue({
+      id: 'evt_1',
+      type: 'checkout.session.completed',
+      data: { object: { id: 'cs_1', payment_intent: 'pi_1' } },
+    })
+    mocked.findPaymentByCheckoutSession.mockResolvedValue({
+      id: 'pay_1',
+      amountPence: 5000,
+      status: 'PENDING',
+      appointment: {
+        id: 'appt_1',
+        status: 'PENDING',
+        dateTime: new Date('2026-04-20T10:00:00.000Z'),
+        service: { name: 'Full Groom' },
+        dog: { name: 'Rex' },
+        user: { id: 'u1', firstName: 'Ada', lastName: 'Lovelace', email: 'ada@example.com' },
+      },
+    })
+    mocked.transaction.mockImplementation(async (fn: any) =>
+      fn({
+        payment: { update: mocked.updatePayment },
+        appointment: { update: mocked.updateAppointment },
+      }))
+    mocked.createInvoiceForPayment.mockResolvedValue({
+      invoice: { number: 'INV-001' },
+      pdfPath: '/tmp/inv-001.pdf',
+    })
   })
 
-  it('rejects requests with invalid signature', () => {
-    const stripe = new Stripe('sk_test_fake')
-    const payload = '{"id":"evt_test"}'
-    const secret = 'whsec_test_secret'
-    const invalidSig = 't=12345,v1=invalidsignature'
-
-    expect(() => {
-      stripe.webhooks.constructEvent(payload, invalidSig, secret)
-    }).toThrow()
+  it('rejects missing signature header', async () => {
+    mocked.getHeader.mockReturnValue(undefined)
+    await expect(handler({} as any)).rejects.toMatchObject({ statusCode: 400 })
   })
 
-  it('accepts requests with valid signature', () => {
-    const stripe = new Stripe('sk_test_fake')
-    const payload = '{"id":"evt_123","type":"checkout.session.completed","data":{"object":{}}}'
-    const secret = 'whsec_test_secret'
-
-    // Generate a valid signature
-    const timestamp = Math.floor(Date.now() / 1000)
-    const signedPayload = `${timestamp}.${payload}`
-    const crypto = require('crypto')
-    const expectedSig = crypto
-      .createHmac('sha256', secret)
-      .update(signedPayload)
-      .digest('hex')
-
-    const header = `t=${timestamp},v1=${expectedSig}`
-
-    const event = stripe.webhooks.constructEvent(payload, header, secret)
-    expect(event).toBeDefined()
-    expect(event.id).toBe('evt_123')
-    expect(event.type).toBe('checkout.session.completed')
-  })
-})
-
-describe('Webhook Idempotency', () => {
-  const processedEvents = new Set<string>()
-
-  function processEvent(eventId: string): { received: boolean; duplicate: boolean } {
-    if (processedEvents.has(eventId)) {
-      return { received: true, duplicate: true }
-    }
-    processedEvents.add(eventId)
-    return { received: true, duplicate: false }
-  }
-
-  it('processes a new event', () => {
-    const result = processEvent('evt_new_1')
-    expect(result.duplicate).toBe(false)
-    expect(result.received).toBe(true)
+  it('rejects invalid webhook signature', async () => {
+    mocked.constructEvent.mockImplementation(() => {
+      throw new Error('bad signature')
+    })
+    await expect(handler({} as any)).rejects.toMatchObject({ statusCode: 400 })
   })
 
-  it('detects duplicate event', () => {
-    const result = processEvent('evt_new_1')
-    expect(result.duplicate).toBe(true)
+  it('returns duplicate response for already processed events', async () => {
+    mocked.findStripeEvent.mockResolvedValue({ id: 'evt_1' })
+    await expect(handler({} as any)).resolves.toEqual({ received: true, duplicate: true })
+    expect(mocked.createStripeEvent).not.toHaveBeenCalled()
   })
 
-  it('processes different event IDs independently', () => {
-    const r1 = processEvent('evt_new_2')
-    const r2 = processEvent('evt_new_3')
-    expect(r1.duplicate).toBe(false)
-    expect(r2.duplicate).toBe(false)
+  it('handles checkout.session.completed and generates invoice + confirmation', async () => {
+    await expect(handler({} as any)).resolves.toEqual({ received: true })
+
+    expect(mocked.createStripeEvent).toHaveBeenCalledWith({
+      data: { id: 'evt_1', type: 'checkout.session.completed' },
+    })
+    expect(mocked.transaction).toHaveBeenCalledTimes(1)
+    expect(mocked.updatePayment).toHaveBeenCalled()
+    expect(mocked.updateAppointment).toHaveBeenCalledWith({
+      where: { id: 'appt_1' },
+      data: { status: 'CONFIRMED' },
+    })
+    expect(mocked.createInvoiceForPayment).toHaveBeenCalledTimes(1)
+    expect(mocked.sendPaymentConfirmation).toHaveBeenCalledTimes(1)
+  })
+
+  it('marks payment as FAILED for payment_intent.payment_failed', async () => {
+    mocked.constructEvent.mockReturnValue({
+      id: 'evt_2',
+      type: 'payment_intent.payment_failed',
+      data: { object: { id: 'pi_2' } },
+    })
+    mocked.findPaymentByProviderRef.mockResolvedValue({ id: 'pay_2', status: 'PENDING' })
+    await expect(handler({} as any)).resolves.toEqual({ received: true })
+
+    expect(mocked.updatePayment).toHaveBeenCalledWith({
+      where: { id: 'pay_2' },
+      data: { status: 'FAILED' },
+    })
   })
 })
