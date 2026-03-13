@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { PrismaClient } from '../generated/prisma/client'
 import bcrypt from 'bcrypt'
 
@@ -13,7 +14,7 @@ async function main() {
       description:
         'A thorough wash using premium shampoo tailored to your dog\'s coat, followed by a full blow-dry and brush-out.',
       priceFrom: 1500, // £15.00
-      priceTo: 2500,   // £25.00
+      priceTo: 4000,   // £40.00
       durationMin: 45,
       sortOrder: 1,
     },
@@ -21,9 +22,9 @@ async function main() {
       name: 'Full Groom',
       description:
         'Complete groom including wash, dry, full-body clip or scissor cut, nail trim, ear clean, and finishing spray.',
-      priceFrom: 2500, // £25.00
-      priceTo: 3500,   // £35.00
-      durationMin: 90,
+      priceFrom: 4000, // £40.00
+      priceTo: 9000,   // £90.00
+      durationMin: 120,
       sortOrder: 2,
     },
     {
@@ -62,7 +63,12 @@ async function main() {
 
   await prisma.user.upsert({
     where: { email: adminEmail },
-    update: {},
+    update: {
+      passwordHash: hash,
+      role: 'ADMIN',
+      firstName: 'Admin',
+      lastName: 'User',
+    },
     create: {
       email: adminEmail,
       passwordHash: hash,

@@ -3,10 +3,12 @@ import { defineConfig } from "prisma/config";
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
+  engine: "classic",
+  datasource: {
+    url: process.env.DATABASE_URL || "",
+  },
   migrations: {
     path: "prisma/migrations",
-  },
-  seed: {
-    run: "tsx prisma/seed.ts",
+    seed: "tsx prisma/seed.ts",
   },
 });

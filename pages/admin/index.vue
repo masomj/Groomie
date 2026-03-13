@@ -59,6 +59,31 @@ async function updateStatus(id: string, newStatus: string) {
   }
 }
 
+async function updatePrice(id: string, currentPrice: number | null) {
+  const current = currentPrice ?? 0
+  const input = window.prompt('Enter new booking price in pence (e.g. 4500 for GBP45.00):', String(current))
+  if (input === null) return
+
+  const nextPrice = Number.parseInt(input, 10)
+  if (!Number.isInteger(nextPrice) || nextPrice < 0) {
+    alert('Price must be a non-negative whole number in pence.')
+    return
+  }
+
+  updating.value = id
+  try {
+    await $fetch(`/api/admin/appointments/${id}`, {
+      method: 'PATCH',
+      body: { priceCharged: nextPrice },
+    })
+    await refresh()
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || 'Failed to update booking price.')
+  } finally {
+    updating.value = null
+  }
+}
+
 function getInvoiceNumber(appt: any): string | null {
   return appt.invoiceItems?.[0]?.invoice?.number || null
 }
@@ -73,6 +98,24 @@ function getInvoiceNumber(appt: any): string | null {
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
       <h1 class="text-2xl font-bold text-gray-900">Admin - Appointments</h1>
       <div class="flex gap-2">
+        <NuxtLink
+          to="/admin/schedule"
+          class="btn-primary btn-sm gap-1.5"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          Schedule
+        </NuxtLink>
+        <NuxtLink
+          to="/admin/customers"
+          class="btn-primary btn-sm gap-1.5"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5V4H2v16h5m10 0v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6m10 0H7" />
+          </svg>
+          Customers
+        </NuxtLink>
         <NuxtLink
           to="/admin/reports"
           class="btn-primary btn-sm gap-1.5"
@@ -128,6 +171,7 @@ function getInvoiceNumber(appt: any): string | null {
               <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
               <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Dog</th>
               <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Service</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Price</th>
               <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
               <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Payment</th>
               <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Invoice</th>
@@ -141,6 +185,16 @@ function getInvoiceNumber(appt: any): string | null {
               <td class="px-4 py-4 text-gray-700 font-medium">{{ appt.user.firstName }} {{ appt.user.lastName }}</td>
               <td class="px-4 py-4 text-gray-700">{{ appt.dog.name }}</td>
               <td class="px-4 py-4 text-gray-700">{{ appt.service.name }}</td>
+              <td class="px-4 py-4 text-gray-700 whitespace-nowrap">
+                <div>GBP {{ ((appt.priceCharged ?? 0) / 100).toFixed(2) }}</div>
+                <button
+                  class="text-xs text-brand-blue-dark hover:underline font-medium mt-1"
+                  :disabled="updating === appt.id"
+                  @click="updatePrice(appt.id, appt.priceCharged)"
+                >
+                  Edit
+                </button>
+              </td>
               <td class="px-4 py-4">
                 <span :class="statusBadgeClass(appt.status)" class="badge">
                   {{ appt.status }}

@@ -68,6 +68,18 @@ export default defineEventHandler(async (event) => {
     const apptStart = dt.getTime()
     const apptEnd = apptStart + service.durationMin * 60 * 1000
 
+    const overlappingBlockout = await tx.blockoutPeriod.findFirst({
+      where: {
+        startsAt: { lt: new Date(apptEnd) },
+        endsAt: { gt: new Date(apptStart) },
+      },
+      select: { id: true },
+    })
+
+    if (overlappingBlockout) {
+      throw createError({ statusCode: 409, statusMessage: 'This time slot is unavailable. Please choose another.' })
+    }
+
     const conflicts = await tx.appointment.findMany({
       where: {
         dateTime: {

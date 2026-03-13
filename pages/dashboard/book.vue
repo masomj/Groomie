@@ -201,7 +201,7 @@ async function confirmBooking() {
       <div v-if="step === 1">
         <h2 class="text-lg font-semibold text-gray-900 mb-1">1. Choose a Service</h2>
         <p class="text-sm text-gray-500 mb-5">Select the grooming service you'd like to book.</p>
-        <div class="space-y-3">
+        <div v-if="services.length > 0" class="space-y-3">
           <button
             v-for="svc in services"
             :key="svc.id"
@@ -239,6 +239,9 @@ async function confirmBooking() {
               </div>
             </div>
           </button>
+        </div>
+        <div v-else class="card p-6 text-center">
+          <p class="text-sm text-gray-600">No active services are available right now. Please try again shortly or contact support.</p>
         </div>
       </div>
 

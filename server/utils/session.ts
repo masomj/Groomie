@@ -1,6 +1,7 @@
 import { H3Event, getCookie, setCookie, deleteCookie } from 'h3'
 import { randomBytes, createHmac } from 'crypto'
 import prisma from './prisma'
+import { isUserSuspended } from './account-state'
 
 const SESSION_COOKIE = 'pp_session'
 const SESSION_MAX_AGE = 7 * 24 * 60 * 60 * 1000 // 7 days
@@ -57,6 +58,11 @@ export async function getUserSession(event: H3Event) {
   })
 
   if (!session) return null
+  if (await isUserSuspended(session.userId)) {
+    await prisma.session.delete({ where: { id: sessionId } }).catch(() => {})
+    deleteCookie(event, SESSION_COOKIE)
+    return null
+  }
   if (session.expiresAt < new Date()) {
     await prisma.session.delete({ where: { id: sessionId } })
     deleteCookie(event, SESSION_COOKIE)

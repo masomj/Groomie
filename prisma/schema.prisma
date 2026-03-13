@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
@@ -281,6 +281,20 @@ model AvailabilitySlot {
 
   @@unique([dayOfWeek, startTime])
   @@map("availability_slots")
+}
+
+// ─── Blockout Periods ──────────────────────────────────────────────────────
+
+model BlockoutPeriod {
+  id        String   @id @default(cuid())
+  startsAt  DateTime @map("starts_at")
+  endsAt    DateTime @map("ends_at")
+  reason    String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([startsAt])
+  @@index([endsAt])
+  @@map("blockout_periods")
 }
 
 // ─── Audit ──────────────────────────────────────────────────────────────────

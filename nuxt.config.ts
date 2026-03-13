@@ -20,7 +20,7 @@ export default defineNuxtConfig({
       external: ['bcrypt', 'pdfkit', 'nodemailer'],
     },
     rollupConfig: {
-      external: [/@prisma/, /\.prisma/, /generated\/prisma/],
+      external: [/@prisma/, /\.prisma/],
     },
   },
   app: {

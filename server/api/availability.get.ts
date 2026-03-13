@@ -34,13 +34,25 @@ export default defineEventHandler(async (event) => {
     select: { dateTime: true, durationMin: true },
   })
 
+  const blockouts = await prisma.blockoutPeriod.findMany({
+    where: {
+      startsAt: { lt: dayEnd },
+      endsAt: { gt: dayStart },
+    },
+    select: { startsAt: true, endsAt: true },
+  })
+
   // Generate hourly time slots from availability, mark booked ones
   const available: { time: string; available: boolean }[] = []
 
   for (const slot of slots) {
     // Parse HH:MM format from startTime and endTime
-    const [startH, startM] = slot.startTime.split(':').map(Number)
-    const [endH, endM] = slot.endTime.split(':').map(Number)
+    const startParts = slot.startTime.split(':')
+    const endParts = slot.endTime.split(':')
+    const startH = Number(startParts[0] ?? 0)
+    const startM = Number(startParts[1] ?? 0)
+    const endH = Number(endParts[0] ?? 0)
+    const endM = Number(endParts[1] ?? 0)
 
     let h = startH
     let m = startM
@@ -57,7 +69,15 @@ export default defineEventHandler(async (event) => {
         return slotTime < apptEnd && slotEnd > apptStart
       })
 
-      available.push({ time: timeStr, available: !isBooked })
+      const isBlocked = blockouts.some((blockout) => {
+        const blockedStart = new Date(blockout.startsAt).getTime()
+        const blockedEnd = new Date(blockout.endsAt).getTime()
+        const slotTime = slotStart.getTime()
+        const slotEnd = slotTime + 60 * 60 * 1000
+        return slotTime < blockedEnd && slotEnd > blockedStart
+      })
+
+      available.push({ time: timeStr, available: !isBooked && !isBlocked })
 
       // Advance by 1 hour
       m += 60

@@ -7,23 +7,106 @@ const dogs = computed(() => data.value?.dogs || [])
 const showForm = ref(false)
 const editing = ref<any>(null)
 const saving = ref(false)
-const error = ref('')
+const serverError = ref('')
 const deleting = ref<string | null>(null)
+
+const fieldLabels: Record<string, string> = {
+  name: 'Name',
+  age: 'Age',
+  breed: 'Breed',
+  sex: 'Sex',
+  neutered: 'Neutered',
+  vaccinated: 'Vaccinated',
+  dogFriendly: 'Dog Friendly',
+  peopleFriendly: 'People Friendly',
+}
 
 const form = reactive({
   name: '',
   age: null as number | null,
   breed: '',
   sex: '' as string,
-  neutered: null as boolean | null,
-  vaccinated: null as boolean | null,
+  neutered: null as boolean | 'UNKNOWN' | null,
+  vaccinated: null as boolean | 'UNKNOWN' | null,
   medicalHistory: '',
-  dogFriendly: 'UNSURE',
-  peopleFriendly: 'UNSURE',
+  dogFriendly: '',
+  peopleFriendly: '',
   emergencyVetName: '',
   emergencyVetAddr: '',
   notes: '',
 })
+
+const errors = reactive<Record<string, string>>({})
+const hasErrors = computed(() => Object.keys(errors).length > 0)
+
+function focusField(event: Event, field: string) {
+  event.preventDefault()
+  const el = document.getElementById(`field-${field}`) as HTMLElement | null
+  if (!el) return
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  el.focus()
+}
+
+function validateField(field: string) {
+  if (field === 'name') {
+    if (!form.name.trim()) errors.name = 'Name is required.'
+    else delete errors.name
+    return
+  }
+
+  if (field === 'age') {
+    if (form.age === null || form.age === undefined || String(form.age) === '') {
+      errors.age = 'Age is required.'
+    } else if (Number(form.age) < 0) {
+      errors.age = 'Age cannot be negative.'
+    } else if (Number(form.age) > 30) {
+      errors.age = 'Age cannot exceed 30 years.'
+    } else {
+      delete errors.age
+    }
+    return
+  }
+
+  if (field === 'breed') {
+    if (!form.breed.trim()) errors.breed = 'Breed is required.'
+    else delete errors.breed
+    return
+  }
+
+  if (field === 'sex') {
+    if (!form.sex) errors.sex = 'Sex is required.'
+    else delete errors.sex
+    return
+  }
+
+  if (field === 'neutered') {
+    if (form.neutered === null) errors.neutered = 'Please select whether your dog is neutered.'
+    else delete errors.neutered
+    return
+  }
+
+  if (field === 'vaccinated') {
+    if (form.vaccinated === null) errors.vaccinated = 'Please select whether your dog is vaccinated.'
+    else delete errors.vaccinated
+    return
+  }
+
+  if (field === 'dogFriendly') {
+    if (!form.dogFriendly) errors.dogFriendly = 'Please select a dog friendly option.'
+    else delete errors.dogFriendly
+    return
+  }
+
+  if (field === 'peopleFriendly') {
+    if (!form.peopleFriendly) errors.peopleFriendly = 'Please select a people friendly option.'
+    else delete errors.peopleFriendly
+  }
+}
+
+function clearErrors() {
+  for (const key of Object.keys(errors)) delete errors[key]
+  serverError.value = ''
+}
 
 function resetForm() {
   form.name = ''
@@ -33,8 +116,8 @@ function resetForm() {
   form.neutered = null
   form.vaccinated = null
   form.medicalHistory = ''
-  form.dogFriendly = 'UNSURE'
-  form.peopleFriendly = 'UNSURE'
+  form.dogFriendly = ''
+  form.peopleFriendly = ''
   form.emergencyVetName = ''
   form.emergencyVetAddr = ''
   form.notes = ''
@@ -42,9 +125,9 @@ function resetForm() {
 
 function openAdd() {
   resetForm()
+  clearErrors()
   editing.value = null
   showForm.value = true
-  error.value = ''
 }
 
 function openEdit(dog: any) {
@@ -53,39 +136,59 @@ function openEdit(dog: any) {
   form.age = dog.age
   form.breed = dog.breed || ''
   form.sex = dog.sex || ''
-  form.neutered = dog.neutered
-  form.vaccinated = dog.vaccinated
+  form.neutered = dog.neutered === null ? 'UNKNOWN' : dog.neutered
+  form.vaccinated = dog.vaccinated === null ? 'UNKNOWN' : dog.vaccinated
   form.medicalHistory = dog.medicalHistory || ''
   form.dogFriendly = dog.dogFriendly || 'UNSURE'
   form.peopleFriendly = dog.peopleFriendly || 'UNSURE'
   form.emergencyVetName = dog.emergencyVetName || ''
   form.emergencyVetAddr = dog.emergencyVetAddr || ''
   form.notes = dog.notes || ''
+  clearErrors()
   showForm.value = true
-  error.value = ''
+}
+
+function validate(): boolean {
+  for (const key of Object.keys(errors)) delete errors[key]
+
+  validateField('name')
+  validateField('age')
+  validateField('breed')
+  validateField('sex')
+  validateField('neutered')
+  validateField('vaccinated')
+  validateField('dogFriendly')
+  validateField('peopleFriendly')
+
+  if (hasErrors.value) {
+    nextTick(() => {
+      const el = document.getElementById('error-summary')
+      el?.focus()
+    })
+  }
+
+  return !hasErrors.value
 }
 
 async function handleSubmit() {
-  error.value = ''
+  serverError.value = ''
+  if (!validate()) return
+
   saving.value = true
   try {
     const payload: any = {
       name: form.name,
-      breed: form.breed || null,
-      sex: form.sex || null,
-      neutered: form.neutered,
-      vaccinated: form.vaccinated,
+      breed: form.breed,
+      sex: form.sex,
+      neutered: form.neutered === 'UNKNOWN' ? null : form.neutered,
+      vaccinated: form.vaccinated === 'UNKNOWN' ? null : form.vaccinated,
       medicalHistory: form.medicalHistory || null,
       dogFriendly: form.dogFriendly,
       peopleFriendly: form.peopleFriendly,
       emergencyVetName: form.emergencyVetName || null,
       emergencyVetAddr: form.emergencyVetAddr || null,
       notes: form.notes || null,
-    }
-    if (form.age !== null && form.age !== undefined && String(form.age) !== '') {
-      payload.age = Number(form.age)
-    } else {
-      payload.age = null
+      age: Number(form.age),
     }
 
     if (editing.value) {
@@ -96,7 +199,10 @@ async function handleSubmit() {
     showForm.value = false
     await refresh()
   } catch (e: any) {
-    error.value = e?.data?.statusMessage || 'Failed to save dog profile.'
+    serverError.value = e?.data?.statusMessage || 'Failed to save dog profile.'
+    nextTick(() => {
+      document.getElementById('server-error')?.focus()
+    })
   } finally {
     saving.value = false
   }
@@ -155,84 +261,201 @@ async function deleteDog(id: string) {
     <div v-if="showForm" class="card p-6 md:p-8 mb-8">
       <h2 class="text-xl font-bold text-gray-900 mb-6">{{ editing ? 'Edit Dog Profile' : 'Add a New Dog' }}</h2>
 
-      <div v-if="error" class="alert-error mb-6">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+      <!-- Server error -->
+      <div v-if="serverError" id="server-error" tabindex="-1" class="alert-error mb-6" role="alert">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
           <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
         </svg>
-        <span>{{ error }}</span>
+        <span>{{ serverError }}</span>
       </div>
 
-      <form @submit.prevent="handleSubmit" class="space-y-5">
+      <!-- Validation error summary with skip links -->
+      <div v-if="hasErrors" id="error-summary" tabindex="-1" class="rounded-lg border border-red-300 bg-red-50 p-4 mb-6" role="alert" aria-labelledby="error-summary-heading" aria-live="assertive">
+        <h3 id="error-summary-heading" class="text-sm font-semibold text-red-800 mb-2">
+          There {{ Object.keys(errors).length === 1 ? 'is 1 problem' : `are ${Object.keys(errors).length} problems` }} with your submission
+        </h3>
+        <ul class="list-disc pl-5 space-y-1">
+          <li v-for="(msg, field) in errors" :key="field" class="text-sm text-red-700">
+            <a :href="`#field-${field}`" @click="focusField($event, String(field))" class="underline hover:text-red-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 rounded">
+              {{ fieldLabels[field] }}: {{ msg }}
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <form @submit.prevent="handleSubmit" class="space-y-5" novalidate>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- Name -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">Name <span class="text-red-500">*</span></label>
-            <input v-model="form.name" type="text" required placeholder="e.g. Buddy" class="input-field" />
+            <label for="field-name" class="block text-sm font-medium mb-1.5" :class="errors.name ? 'text-red-700' : 'text-gray-700'">Name <span class="text-red-500" aria-hidden="true">*</span></label>
+            <input
+              id="field-name"
+              v-model="form.name"
+              type="text"
+              placeholder="e.g. Buddy"
+              aria-required="true"
+              :aria-invalid="!!errors.name"
+              :aria-describedby="errors.name ? 'error-name' : undefined"
+              :class="['input-field', errors.name ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-500' : '']"
+            />
+            <p v-if="errors.name" id="error-name" class="mt-1 text-sm text-red-600" role="alert">{{ errors.name }}</p>
           </div>
+
+          <!-- Age -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">Age (years)</label>
-            <input v-model="form.age" type="number" min="0" step="1" placeholder="e.g. 3" class="input-field" />
+            <label for="field-age" class="block text-sm font-medium mb-1.5" :class="errors.age ? 'text-red-700' : 'text-gray-700'">Age (years) <span class="text-red-500" aria-hidden="true">*</span></label>
+            <input
+              id="field-age"
+              v-model="form.age"
+              type="number"
+              min="0"
+              max="30"
+              step="1"
+              placeholder="e.g. 3"
+              aria-required="true"
+              :aria-invalid="!!errors.age"
+              :aria-describedby="errors.age ? 'error-age' : undefined"
+              :class="['input-field', errors.age ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-500' : '']"
+            />
+            <p v-if="errors.age" id="error-age" class="mt-1 text-sm text-red-600" role="alert">{{ errors.age }}</p>
           </div>
+
+          <!-- Breed -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">Breed</label>
-            <input v-model="form.breed" type="text" placeholder="e.g. Labrador Retriever" class="input-field" />
+            <label for="field-breed" class="block text-sm font-medium mb-1.5" :class="errors.breed ? 'text-red-700' : 'text-gray-700'">Breed <span class="text-red-500" aria-hidden="true">*</span></label>
+            <input
+              id="field-breed"
+              v-model="form.breed"
+              type="text"
+              placeholder="e.g. Labrador Retriever"
+              aria-required="true"
+              :aria-invalid="!!errors.breed"
+              :aria-describedby="errors.breed ? 'error-breed' : undefined"
+              :class="['input-field', errors.breed ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-500' : '']"
+            />
+            <p v-if="errors.breed" id="error-breed" class="mt-1 text-sm text-red-600" role="alert">{{ errors.breed }}</p>
           </div>
+
+          <!-- Sex -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">Sex</label>
-            <select v-model="form.sex" class="input-field">
-              <option value="">-- Select --</option>
+            <label for="field-sex" class="block text-sm font-medium mb-1.5" :class="errors.sex ? 'text-red-700' : 'text-gray-700'">Sex <span class="text-red-500" aria-hidden="true">*</span></label>
+            <select
+              id="field-sex"
+              v-model="form.sex"
+              aria-required="true"
+              :aria-invalid="!!errors.sex"
+              :aria-describedby="errors.sex ? 'error-sex' : undefined"
+              :class="['input-field', errors.sex ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-500' : '']"
+            >
+              <option value="" disabled>-- Select --</option>
               <option value="MALE">Male</option>
               <option value="FEMALE">Female</option>
             </select>
+            <p v-if="errors.sex" id="error-sex" class="mt-1 text-sm text-red-600" role="alert">{{ errors.sex }}</p>
           </div>
+
+          <!-- Neutered -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">Neutered?</label>
-            <select v-model="form.neutered" class="input-field">
-              <option :value="null">Unknown</option>
+            <label for="field-neutered" class="block text-sm font-medium mb-1.5" :class="errors.neutered ? 'text-red-700' : 'text-gray-700'">Neutered? <span class="text-red-500" aria-hidden="true">*</span></label>
+            <select
+              id="field-neutered"
+              v-model="form.neutered"
+              aria-required="true"
+              :aria-invalid="!!errors.neutered"
+              :aria-describedby="errors.neutered ? 'error-neutered' : undefined"
+              :class="['input-field', errors.neutered ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-500' : '']"
+            >
+              <option :value="null" disabled>-- Select --</option>
               <option :value="true">Yes</option>
               <option :value="false">No</option>
+              <option value="UNKNOWN">Unknown</option>
             </select>
+            <p v-if="errors.neutered" id="error-neutered" class="mt-1 text-sm text-red-600" role="alert">{{ errors.neutered }}</p>
           </div>
+
+          <!-- Vaccinated -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">Vaccinated?</label>
-            <select v-model="form.vaccinated" class="input-field">
-              <option :value="null">Unknown</option>
+            <label for="field-vaccinated" class="block text-sm font-medium mb-1.5" :class="errors.vaccinated ? 'text-red-700' : 'text-gray-700'">Vaccinated? <span class="text-red-500" aria-hidden="true">*</span></label>
+            <select
+              id="field-vaccinated"
+              v-model="form.vaccinated"
+              aria-required="true"
+              :aria-invalid="!!errors.vaccinated"
+              :aria-describedby="errors.vaccinated ? 'error-vaccinated' : undefined"
+              :class="['input-field', errors.vaccinated ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-500' : '']"
+            >
+              <option :value="null" disabled>-- Select --</option>
               <option :value="true">Yes</option>
               <option :value="false">No</option>
+              <option value="UNKNOWN">Unknown</option>
             </select>
+            <p v-if="errors.vaccinated" id="error-vaccinated" class="mt-1 text-sm text-red-600" role="alert">{{ errors.vaccinated }}</p>
           </div>
+
+          <!-- Dog Friendly -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">Dog Friendly?</label>
-            <select v-model="form.dogFriendly" class="input-field">
-              <option value="UNSURE">Unsure</option>
+            <label for="field-dogFriendly" class="block text-sm font-medium mb-1.5" :class="errors.dogFriendly ? 'text-red-700' : 'text-gray-700'">Dog Friendly? <span class="text-red-500" aria-hidden="true">*</span></label>
+            <select
+              id="field-dogFriendly"
+              v-model="form.dogFriendly"
+              aria-required="true"
+              :aria-invalid="!!errors.dogFriendly"
+              :aria-describedby="errors.dogFriendly ? 'error-dogFriendly' : undefined"
+              :class="['input-field', errors.dogFriendly ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-500' : '']"
+            >
+              <option value="" disabled>-- Select --</option>
               <option value="YES">Yes</option>
               <option value="NO">No</option>
+              <option value="UNSURE">Unknown</option>
             </select>
+            <p v-if="errors.dogFriendly" id="error-dogFriendly" class="mt-1 text-sm text-red-600" role="alert">{{ errors.dogFriendly }}</p>
           </div>
+
+          <!-- People Friendly -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">People Friendly?</label>
-            <select v-model="form.peopleFriendly" class="input-field">
-              <option value="UNSURE">Unsure</option>
+            <label for="field-peopleFriendly" class="block text-sm font-medium mb-1.5" :class="errors.peopleFriendly ? 'text-red-700' : 'text-gray-700'">People Friendly? <span class="text-red-500" aria-hidden="true">*</span></label>
+            <select
+              id="field-peopleFriendly"
+              v-model="form.peopleFriendly"
+              aria-required="true"
+              :aria-invalid="!!errors.peopleFriendly"
+              :aria-describedby="errors.peopleFriendly ? 'error-peopleFriendly' : undefined"
+              :class="['input-field', errors.peopleFriendly ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-500' : '']"
+            >
+              <option value="" disabled>-- Select --</option>
               <option value="YES">Yes</option>
               <option value="NO">No</option>
+              <option value="UNSURE">Unknown</option>
             </select>
+            <p v-if="errors.peopleFriendly" id="error-peopleFriendly" class="mt-1 text-sm text-red-600" role="alert">{{ errors.peopleFriendly }}</p>
           </div>
+
+          <!-- Medical History (optional) -->
           <div class="md:col-span-2">
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">Medical History</label>
-            <textarea v-model="form.medicalHistory" rows="2" placeholder="Any known conditions, allergies, or medications..." class="input-field"></textarea>
+            <label for="field-medicalHistory" class="block text-sm font-medium text-gray-700 mb-1.5">Medical History</label>
+            <textarea id="field-medicalHistory" v-model="form.medicalHistory" rows="2" placeholder="Any known conditions, allergies, or medications..." class="input-field"></textarea>
           </div>
+
+          <!-- Emergency Vet Name (optional) -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">Emergency Vet Practice Name</label>
-            <input v-model="form.emergencyVetName" type="text" placeholder="e.g. Porthcawl Veterinary Clinic" class="input-field" />
+            <label for="field-emergencyVetName" class="block text-sm font-medium text-gray-700 mb-1.5">Emergency Vet Practice Name</label>
+            <input id="field-emergencyVetName" v-model="form.emergencyVetName" type="text" placeholder="e.g. Porthcawl Veterinary Clinic" class="input-field" />
           </div>
+
+          <!-- Emergency Vet Address (optional) -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">Emergency Vet Practice Address</label>
-            <input v-model="form.emergencyVetAddr" type="text" placeholder="e.g. 12 High Street, Porthcawl" class="input-field" />
+            <label for="field-emergencyVetAddr" class="block text-sm font-medium text-gray-700 mb-1.5">Emergency Vet Practice Address</label>
+            <input id="field-emergencyVetAddr" v-model="form.emergencyVetAddr" type="text" placeholder="e.g. 12 High Street, Porthcawl" class="input-field" />
           </div>
+
+          <!-- Notes (optional) -->
           <div class="md:col-span-2">
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">Additional Notes</label>
-            <textarea v-model="form.notes" rows="2" placeholder="Anything else we should know about your dog..." class="input-field"></textarea>
+            <label for="field-notes" class="block text-sm font-medium text-gray-700 mb-1.5">Additional Notes</label>
+            <textarea id="field-notes" v-model="form.notes" rows="2" placeholder="Anything else we should know about your dog..." class="input-field"></textarea>
           </div>
         </div>
+
+        <p class="text-xs text-gray-400"><span class="text-red-500" aria-hidden="true">*</span> Required field</p>
 
         <div class="flex items-center gap-3 pt-2">
           <button
@@ -240,7 +463,7 @@ async function deleteDog(id: string) {
             :disabled="saving"
             class="btn-primary"
           >
-            <svg v-if="saving" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg v-if="saving" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
             </svg>
