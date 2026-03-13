@@ -1,0 +1,41 @@
+# docker-compose.yml – local development convenience
+# Primary deliverable is the Docker image; this is optional for local ops.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pampered_pooch
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@db:5432/pampered_pooch?schema=public"
+      SESSION_SECRET: "local-dev-secret-change-in-production-64-chars-minimum-abcdefghijklmnop"
+      APP_BASE_URL: "http://localhost:3000"
+      NODE_ENV: production
+      # Set these for Stripe integration:
+      # STRIPE_SECRET_KEY: "sk_test_..."
+      # STRIPE_WEBHOOK_SECRET: "whsec_..."
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - invoices:/app/data/invoices
+
+volumes:
+  pgdata:
+  invoices:

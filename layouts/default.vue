@@ -31,6 +31,19 @@
                 {{ link.label }}
               </NuxtLink>
             </li>
+            <li v-if="!user" class="flex gap-3 ml-2">
+              <NuxtLink to="/login" class="text-sm text-brand-blue hover:underline">Log in</NuxtLink>
+              <NuxtLink to="/register" class="text-sm bg-brand-blue text-white px-3 py-1 rounded hover:bg-brand-blue-dark">Register</NuxtLink>
+            </li>
+            <li v-else class="flex gap-3 ml-2 items-center">
+              <NuxtLink
+                :to="user.role === 'ADMIN' ? '/admin' : '/dashboard'"
+                class="text-sm text-brand-blue hover:underline"
+              >
+                {{ user.role === 'ADMIN' ? 'Admin' : 'Dashboard' }}
+              </NuxtLink>
+              <button class="text-sm text-gray-500 hover:text-red-600" @click="logout">Log out</button>
+            </li>
           </ul>
         </div>
 
@@ -46,6 +59,20 @@
               >
                 {{ link.label }}
               </NuxtLink>
+            </li>
+            <li v-if="!user" class="border-t border-gray-100 mt-2 pt-2">
+              <NuxtLink to="/login" class="block px-4 py-2 text-brand-blue" @click="mobileOpen = false">Log in</NuxtLink>
+              <NuxtLink to="/register" class="block px-4 py-2 text-brand-blue" @click="mobileOpen = false">Register</NuxtLink>
+            </li>
+            <li v-else class="border-t border-gray-100 mt-2 pt-2">
+              <NuxtLink
+                :to="user.role === 'ADMIN' ? '/admin' : '/dashboard'"
+                class="block px-4 py-2 text-brand-blue"
+                @click="mobileOpen = false"
+              >
+                {{ user.role === 'ADMIN' ? 'Admin' : 'Dashboard' }}
+              </NuxtLink>
+              <button class="block w-full text-left px-4 py-2 text-red-600" @click="logout">Log out</button>
             </li>
           </ul>
         </div>
@@ -69,6 +96,7 @@
 
 <script setup lang="ts">
 const mobileOpen = ref(false)
+const { user, logout } = useAuth()
 
 const navLinks = [
   { to: '/', label: 'Home' },

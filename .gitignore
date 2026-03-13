@@ -24,3 +24,6 @@ logs
 !.env.example
 
 /generated/prisma
+
+# Invoice PDFs (generated at runtime)
+data/invoices/*.pdf

@@ -4,6 +4,23 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ['@nuxtjs/tailwindcss'],
   css: ['~/assets/css/main.css'],
+  runtimeConfig: {
+    sessionSecret: process.env.SESSION_SECRET || 'dev-secret-change-in-production',
+    stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
+    stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
+    appBaseUrl: process.env.APP_BASE_URL || 'http://localhost:3000',
+    smtpHost: process.env.SMTP_HOST || '',
+    smtpPort: process.env.SMTP_PORT || '587',
+    smtpUser: process.env.SMTP_USER || '',
+    smtpPass: process.env.SMTP_PASS || '',
+    smtpFrom: process.env.SMTP_FROM || '',
+  },
+  nitro: {
+    externals: {
+      inline: ['~/generated/prisma'],
+      external: ['bcrypt', 'pdfkit'],
+    },
+  },
   app: {
     head: {
       title: 'Pampered Pooch Porthcawl',

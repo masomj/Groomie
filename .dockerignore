@@ -1,0 +1,17 @@
+node_modules
+.output
+.nuxt
+.nitro
+.cache
+dist
+.git
+.env
+.env.*
+!.env.example
+*.md
+data/invoices/*.pdf
+generated/prisma
+tests
+.fleet
+.idea
+.DS_Store
