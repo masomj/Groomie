@@ -28,95 +28,121 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="max-w-4xl mx-auto mt-10">
+  <div class="max-w-4xl mx-auto">
     <Head>
       <title>Contact Us - Pampered Pooch Porthcawl</title>
     </Head>
 
-    <h1 class="text-3xl font-bold mb-6">Contact Us</h1>
+    <div class="text-center mb-10">
+      <h1 class="section-heading mb-3">Contact Us</h1>
+      <p class="section-subheading">We'd love to hear from you. Send us a message or find our details below.</p>
+    </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
       <div>
-        <div v-if="submitted" class="bg-green-50 border border-green-200 rounded-lg p-6">
-          <h2 class="text-lg font-semibold text-green-800 mb-2">Message Sent!</h2>
-          <p class="text-green-700 text-sm">
+        <div v-if="submitted" class="card p-8 text-center animate-fade-in" role="status">
+          <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 class="text-lg font-semibold text-gray-900 mb-2">Message Sent!</h2>
+          <p class="text-gray-500 text-sm">
             Thank you for getting in touch. We'll get back to you as soon as possible.
           </p>
         </div>
 
-        <form v-else @submit.prevent="handleSubmit" class="space-y-4">
+        <form v-else class="card p-8 space-y-5" @submit.prevent="handleSubmit">
           <div>
-            <label class="block text-sm font-medium mb-1" for="name">Name *</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5" for="name">Name *</label>
             <input
               id="name"
               v-model="form.name"
               type="text"
               required
               placeholder="Jane Smith"
-              class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue"
+              class="input-field"
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium mb-1" for="email">Email *</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5" for="email">Email *</label>
             <input
               id="email"
               v-model="form.email"
               type="email"
               required
               placeholder="jane@example.com"
-              class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue"
+              class="input-field"
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium mb-1" for="phone">Phone</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5" for="phone">Phone</label>
             <input
               id="phone"
               v-model="form.phone"
               type="tel"
               placeholder="07700 900000"
-              class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue"
+              class="input-field"
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium mb-1" for="message">Message</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5" for="message">Message</label>
             <textarea
               id="message"
               v-model="form.message"
               rows="5"
               placeholder="How can we help?"
-              class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue"
+              class="input-field"
             ></textarea>
           </div>
 
-          <p v-if="error" class="text-red-600 text-sm">{{ error }}</p>
+          <div v-if="error" class="alert-error" role="alert">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{ error }}
+          </div>
 
           <button
             type="submit"
             :disabled="submitting"
-            class="bg-brand-blue-dark text-white px-6 py-2 rounded hover:bg-brand-blue transition-colors disabled:opacity-50"
+            class="btn-primary w-full disabled:opacity-50"
           >
             {{ submitting ? 'Sending...' : 'Send Message' }}
           </button>
         </form>
       </div>
 
-      <div>
-        <div class="bg-gray-50 border rounded-lg p-6">
-          <h2 class="text-lg font-semibold mb-3">Find Us</h2>
-          <p class="text-sm text-gray-600 mb-4">
+      <div class="space-y-6">
+        <div class="card p-8">
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">Find Us</h2>
+          <p class="text-sm text-gray-500 mb-6">
             We're based in Porthcawl, South Wales. Get in touch and we'll arrange
             everything for your furry friend.
           </p>
-          <div class="space-y-2 text-sm text-gray-600">
-            <p>Porthcawl, South Wales</p>
-            <p>
+          <div class="space-y-4">
+            <div class="flex items-center gap-3 text-sm text-gray-600">
+              <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-brand-blue shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+              </div>
+              Porthcawl, South Wales
+            </div>
+            <div class="flex items-center gap-3 text-sm">
+              <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-brand-blue shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+              </div>
               <a href="mailto:hello@pamperedpoochporthcawl.co.uk" class="text-brand-blue-dark hover:underline">
                 hello@pamperedpoochporthcawl.co.uk
               </a>
-            </p>
+            </div>
           </div>
         </div>
       </div>

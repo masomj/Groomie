@@ -17,9 +17,6 @@
     "typecheck": "npx nuxi typecheck",
     "verify": "npm run lint && npm run test && npm run build"
   },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  },
   "dependencies": {
     "@nuxtjs/tailwindcss": "^6.14.0",
     "@prisma/client": "^7.5.0",

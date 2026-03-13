@@ -65,112 +65,153 @@ function getInvoiceNumber(appt: any): string | null {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto mt-8">
+  <div class="max-w-7xl mx-auto mt-8 px-4 sm:px-6 lg:px-8">
     <Head>
       <title>Admin - Pampered Pooch Porthcawl</title>
     </Head>
 
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold">Admin - Appointments</h1>
-      <div class="flex gap-4">
-        <NuxtLink to="/admin/reports" class="text-sm text-brand-blue-dark hover:underline">Reports</NuxtLink>
-        <NuxtLink to="/admin/consent" class="text-sm text-brand-blue-dark hover:underline">Consent Templates</NuxtLink>
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+      <h1 class="text-2xl font-bold text-gray-900">Admin - Appointments</h1>
+      <div class="flex gap-2">
+        <NuxtLink
+          to="/admin/reports"
+          class="btn-primary btn-sm gap-1.5"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Reports
+        </NuxtLink>
+        <NuxtLink
+          to="/admin/consent"
+          class="btn-primary btn-sm gap-1.5"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Consent Templates
+        </NuxtLink>
       </div>
     </div>
 
     <!-- Filter -->
-    <div class="mb-4 flex gap-2 items-center">
-      <label class="text-sm font-medium">Filter by status:</label>
+    <div class="mb-4 flex flex-wrap gap-3 items-center">
+      <label class="text-sm font-medium text-gray-700">Filter by status:</label>
       <select
         v-model="statusFilter"
-        class="border rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue"
+        class="input-field w-auto"
       >
         <option value="">All</option>
         <option v-for="s in statuses" :key="s" :value="s">{{ s }}</option>
       </select>
-      <span class="text-sm text-gray-500">{{ filtered.length }} appointment{{ filtered.length !== 1 ? 's' : '' }}</span>
+      <span class="badge bg-gray-100 text-gray-600">{{ filtered.length }} appointment{{ filtered.length !== 1 ? 's' : '' }}</span>
     </div>
 
-    <div v-if="filtered.length === 0" class="border rounded-lg p-8 text-center">
-      <p class="text-gray-500">No appointments found.</p>
+    <!-- Empty state -->
+    <div v-if="filtered.length === 0" class="card p-12 text-center">
+      <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </div>
+      <p class="text-gray-500 font-medium">No appointments found.</p>
+      <p class="text-gray-400 text-sm mt-1">Try adjusting your filter or check back later.</p>
     </div>
 
-    <div v-else class="overflow-x-auto">
-      <table class="w-full text-sm border-collapse">
-        <thead>
-          <tr class="border-b bg-gray-50">
-            <th class="text-left px-4 py-3 font-medium">Date &amp; Time</th>
-            <th class="text-left px-4 py-3 font-medium">Customer</th>
-            <th class="text-left px-4 py-3 font-medium">Dog</th>
-            <th class="text-left px-4 py-3 font-medium">Service</th>
-            <th class="text-left px-4 py-3 font-medium">Status</th>
-            <th class="text-left px-4 py-3 font-medium">Payment</th>
-            <th class="text-left px-4 py-3 font-medium">Invoice</th>
-            <th class="text-left px-4 py-3 font-medium">Consent</th>
-            <th class="text-left px-4 py-3 font-medium">Update</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="appt in filtered" :key="appt.id" class="border-b hover:bg-gray-50">
-            <td class="px-4 py-3">{{ formatDate(appt.dateTime) }}</td>
-            <td class="px-4 py-3">{{ appt.user.firstName }} {{ appt.user.lastName }}</td>
-            <td class="px-4 py-3">{{ appt.dog.name }}</td>
-            <td class="px-4 py-3">{{ appt.service.name }}</td>
-            <td class="px-4 py-3">
-              <span :class="statusBadgeClass(appt.status)" class="text-xs px-2 py-1 rounded-full font-medium">
-                {{ appt.status }}
-              </span>
-            </td>
-            <td class="px-4 py-3">
-              <span
-                v-if="appt.payment"
-                :class="paymentBadgeClass(appt.payment.status)"
-                class="text-xs px-2 py-1 rounded-full font-medium"
-              >
-                {{ appt.payment.status }}
-              </span>
-              <span v-else class="text-xs text-gray-400">--</span>
-            </td>
-            <td class="px-4 py-3">
-              <a
-                v-if="getInvoiceNumber(appt)"
-                :href="`/api/invoices/${getInvoiceNumber(appt)}`"
-                class="text-xs text-brand-blue-dark hover:underline"
-              >
-                {{ getInvoiceNumber(appt) }}
-              </a>
-              <span v-else class="text-xs text-gray-400">--</span>
-            </td>
-            <td class="px-4 py-3">
-              <template v-if="appt.consentRecords?.length > 0">
-                <span class="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-800">Yes</span>
-                <button
-                  class="text-xs text-gray-500 hover:underline ml-1"
-                  @click="consentDetail = consentDetail === appt.id ? null : appt.id"
+    <!-- Table -->
+    <div v-else class="card overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-gray-50/80 border-b border-gray-200">
+              <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date &amp; Time</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Dog</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Service</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Payment</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Invoice</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Consent</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Update</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr v-for="appt in filtered" :key="appt.id" class="hover:bg-gray-50/50 transition-colors duration-150">
+              <td class="px-4 py-4 text-gray-700 whitespace-nowrap">{{ formatDate(appt.dateTime) }}</td>
+              <td class="px-4 py-4 text-gray-700 font-medium">{{ appt.user.firstName }} {{ appt.user.lastName }}</td>
+              <td class="px-4 py-4 text-gray-700">{{ appt.dog.name }}</td>
+              <td class="px-4 py-4 text-gray-700">{{ appt.service.name }}</td>
+              <td class="px-4 py-4">
+                <span :class="statusBadgeClass(appt.status)" class="badge">
+                  {{ appt.status }}
+                </span>
+              </td>
+              <td class="px-4 py-4">
+                <span
+                  v-if="appt.payment"
+                  :class="paymentBadgeClass(appt.payment.status)"
+                  class="badge"
                 >
-                  {{ consentDetail === appt.id ? 'hide' : 'details' }}
-                </button>
-                <div v-if="consentDetail === appt.id" class="mt-2 text-xs text-gray-600 bg-gray-50 rounded p-2">
-                  <div>Template: {{ appt.consentRecords[0].template.title }} v{{ appt.consentRecords[0].template.version }}</div>
-                  <div>Accepted: {{ new Date(appt.consentRecords[0].capturedAt).toLocaleString('en-GB') }}</div>
-                  <div v-if="appt.consentRecords[0].payload?.signedName">Signed: {{ appt.consentRecords[0].payload.signedName }}</div>
-                </div>
-              </template>
-              <span v-else class="text-xs px-2 py-1 rounded-full font-medium bg-gray-100 text-gray-500">No</span>
-            </td>
-            <td class="px-4 py-3">
-              <select
-                :value="appt.status"
-                :disabled="updating === appt.id"
-                class="border rounded px-2 py-1 text-xs"
-                @change="updateStatus(appt.id, ($event.target as HTMLSelectElement).value)"
-              >
-                <option v-for="s in statuses" :key="s" :value="s">{{ s }}</option>
-              </select>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+                  {{ appt.payment.status }}
+                </span>
+                <span v-else class="text-xs text-gray-400">--</span>
+              </td>
+              <td class="px-4 py-4">
+                <a
+                  v-if="getInvoiceNumber(appt)"
+                  :href="`/api/invoices/${getInvoiceNumber(appt)}`"
+                  class="text-xs text-brand-blue-dark hover:underline font-medium"
+                >
+                  {{ getInvoiceNumber(appt) }}
+                </a>
+                <span v-else class="text-xs text-gray-400">--</span>
+              </td>
+              <td class="px-4 py-4">
+                <template v-if="appt.consentRecords?.length > 0">
+                  <span class="badge bg-green-100 text-green-800">Yes</span>
+                  <button
+                    class="text-xs text-brand-blue-dark hover:underline ml-1.5 font-medium"
+                    @click="consentDetail = consentDetail === appt.id ? null : appt.id"
+                  >
+                    {{ consentDetail === appt.id ? 'hide' : 'details' }}
+                  </button>
+                  <div v-if="consentDetail === appt.id" class="mt-3 text-xs text-gray-600 bg-gray-50 rounded-lg border border-gray-200 p-3 space-y-1.5">
+                    <div class="flex items-center gap-1.5">
+                      <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span><span class="font-medium text-gray-700">Template:</span> {{ appt.consentRecords[0].template.title }} v{{ appt.consentRecords[0].template.version }}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                      <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span><span class="font-medium text-gray-700">Accepted:</span> {{ new Date(appt.consentRecords[0].capturedAt).toLocaleString('en-GB') }}</span>
+                    </div>
+                    <div v-if="appt.consentRecords[0].payload?.signedName" class="flex items-center gap-1.5">
+                      <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                      <span><span class="font-medium text-gray-700">Signed:</span> {{ appt.consentRecords[0].payload.signedName }}</span>
+                    </div>
+                  </div>
+                </template>
+                <span v-else class="badge bg-gray-100 text-gray-500">No</span>
+              </td>
+              <td class="px-4 py-4">
+                <select
+                  :value="appt.status"
+                  :disabled="updating === appt.id"
+                  class="input-field w-auto py-1.5 text-xs"
+                  @change="updateStatus(appt.id, ($event.target as HTMLSelectElement).value)"
+                >
+                  <option v-for="s in statuses" :key="s" :value="s">{{ s }}</option>
+                </select>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </template>

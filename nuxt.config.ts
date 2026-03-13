@@ -17,8 +17,10 @@ export default defineNuxtConfig({
   },
   nitro: {
     externals: {
-      inline: ['~/generated/prisma'],
-      external: ['bcrypt', 'pdfkit'],
+      external: ['bcrypt', 'pdfkit', 'nodemailer'],
+    },
+    rollupConfig: {
+      external: [/@prisma/, /\.prisma/, /generated\/prisma/],
     },
   },
   app: {
@@ -31,6 +33,9 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap' },
       ],
     },
   },

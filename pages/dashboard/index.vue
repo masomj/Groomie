@@ -142,97 +142,105 @@ async function payForAppointment(appointmentId: string) {
 </script>
 
 <template>
-  <div class="max-w-4xl mx-auto mt-8">
+  <div class="max-w-4xl mx-auto mt-8 px-4 sm:px-6 pb-12">
     <Head>
       <title>Dashboard - Pampered Pooch Porthcawl</title>
     </Head>
 
+    <!-- Header -->
     <div class="flex justify-between items-center mb-8">
-      <h1 class="text-2xl font-bold">Dashboard</h1>
-      <div class="flex gap-3">
-        <NuxtLink
-          to="/dashboard/book"
-          class="bg-brand-blue-dark text-white px-4 py-2 rounded text-sm hover:bg-brand-blue transition-colors"
-        >
-          Book Appointment
-        </NuxtLink>
-      </div>
+      <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+      <NuxtLink to="/dashboard/book" class="btn-primary btn-sm">
+        Book Appointment
+      </NuxtLink>
     </div>
 
-    <div class="bg-white border rounded-lg p-6 mb-8">
+    <!-- Welcome Card -->
+    <div class="rounded-xl bg-gradient-to-r from-brand-blue-dark to-brand-blue p-6 mb-8 shadow-card text-white">
       <p class="text-lg">
-        Welcome back, <strong>{{ user?.firstName }}</strong>!
+        Welcome back, <strong class="font-semibold">{{ user?.firstName }}</strong>!
       </p>
     </div>
 
     <!-- Dogs Section -->
-    <div class="mb-8">
+    <div class="mb-10">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-semibold">My Dogs</h2>
+        <h2 class="text-xl font-bold text-gray-900">My Dogs</h2>
         <NuxtLink
           to="/dashboard/dogs"
-          class="text-sm text-brand-blue-dark hover:underline"
+          class="text-sm font-medium text-brand-blue-dark hover:text-brand-blue transition-colors"
         >
           Manage Dogs
         </NuxtLink>
       </div>
 
-      <div v-if="dogs.length === 0" class="border rounded-lg p-5">
+      <div v-if="dogs.length === 0" class="card p-8 text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-300 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V3a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48a4.53 4.53 0 0 1-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
+        </svg>
         <p class="text-sm text-gray-500">
           No dogs registered yet.
-          <NuxtLink to="/dashboard/dogs" class="text-brand-blue-dark hover:underline">Add your first dog</NuxtLink>
+          <NuxtLink to="/dashboard/dogs" class="text-brand-blue-dark font-medium hover:underline">Add your first dog</NuxtLink>
           to get started with booking.
         </p>
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div v-for="dog in dogs" :key="dog.id" class="border rounded-lg p-4">
-          <div class="font-medium">{{ dog.name }}</div>
-          <div class="text-sm text-gray-500">
-            <span v-if="dog.breed">{{ dog.breed }}</span>
-            <span v-if="dog.breed && dog.age"> · </span>
-            <span v-if="dog.age">{{ dog.age }} yrs</span>
+        <div v-for="dog in dogs" :key="dog.id" class="card-hover p-4 flex items-center gap-4">
+          <div class="flex-shrink-0 w-11 h-11 rounded-full bg-brand-blue-dark text-white flex items-center justify-center text-lg font-bold shadow-soft">
+            {{ dog.name?.charAt(0)?.toUpperCase() }}
+          </div>
+          <div>
+            <div class="font-semibold text-gray-900">{{ dog.name }}</div>
+            <div class="text-sm text-gray-500">
+              <span v-if="dog.breed">{{ dog.breed }}</span>
+              <span v-if="dog.breed && dog.age"> · </span>
+              <span v-if="dog.age">{{ dog.age }} yrs</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Upcoming Appointments -->
-    <div class="mb-8">
-      <h2 class="text-xl font-semibold mb-4">Upcoming Appointments</h2>
+    <div class="mb-10">
+      <h2 class="text-xl font-bold text-gray-900 mb-4">Upcoming Appointments</h2>
 
-      <div v-if="upcoming.length === 0" class="border rounded-lg p-5">
+      <div v-if="upcoming.length === 0" class="card p-8 text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-300 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" />
+        </svg>
         <p class="text-sm text-gray-500">
           No upcoming appointments.
-          <NuxtLink v-if="dogs.length > 0" to="/dashboard/book" class="text-brand-blue-dark hover:underline">
+          <NuxtLink v-if="dogs.length > 0" to="/dashboard/book" class="text-brand-blue-dark font-medium hover:underline">
             Book one now
           </NuxtLink>
         </p>
       </div>
 
       <div v-else class="space-y-4">
-        <div v-for="appt in upcoming" :key="appt.id" class="border rounded-lg p-4">
+        <div v-for="appt in upcoming" :key="appt.id" class="card p-5">
           <div class="flex justify-between items-start">
             <div>
-              <div class="font-medium">{{ appt.service.name }}</div>
-              <div class="text-sm text-gray-600">{{ appt.dog.name }} · {{ formatDate(appt.dateTime) }}</div>
-              <div class="text-sm text-gray-500">{{ appt.durationMin }} min<span v-if="appt.priceCharged"> · {{ formatPrice(appt.priceCharged) }}</span></div>
+              <div class="font-semibold text-gray-900">{{ appt.service.name }}</div>
+              <div class="text-sm text-gray-600 mt-0.5">{{ appt.dog.name }} · {{ formatDate(appt.dateTime) }}</div>
+              <div class="text-sm text-gray-500 mt-0.5">{{ appt.durationMin }} min<span v-if="appt.priceCharged"> · {{ formatPrice(appt.priceCharged) }}</span></div>
             </div>
-            <div class="flex flex-col items-end gap-1">
-              <span :class="statusBadgeClass(appt.status)" class="text-xs px-2 py-1 rounded-full font-medium">
+            <div class="flex flex-col items-end gap-1.5">
+              <span :class="statusBadgeClass(appt.status)" class="badge">
                 {{ appt.status }}
               </span>
-              <span v-if="appt.payment" :class="paymentBadgeClass(appt.payment.status)" class="text-xs px-2 py-1 rounded-full font-medium">
+              <span v-if="appt.payment" :class="paymentBadgeClass(appt.payment.status)" class="badge">
                 {{ appt.payment.status === 'PAID' ? 'Paid' : appt.payment.status }}
               </span>
             </div>
           </div>
 
           <!-- Payment + Invoice row -->
-          <div class="mt-2 flex items-center gap-3 flex-wrap">
+          <div class="mt-3 flex items-center gap-3 flex-wrap">
             <button
               v-if="canPay(appt)"
-              class="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition-colors"
+              class="inline-flex items-center justify-center bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 transition-all duration-200 shadow-soft"
               :disabled="paying === appt.id"
               @click="payForAppointment(appt.id)"
             >
@@ -241,22 +249,22 @@ async function payForAppointment(appointmentId: string) {
             <a
               v-if="getInvoiceNumber(appt)"
               :href="`/api/invoices/${getInvoiceNumber(appt)}`"
-              class="text-xs text-brand-blue-dark hover:underline"
+              class="text-sm font-medium text-brand-blue-dark hover:text-brand-blue transition-colors"
             >
               Invoice {{ getInvoiceNumber(appt) }}
             </a>
           </div>
 
-          <div v-if="canModify(appt)" class="mt-3 flex gap-2">
+          <div v-if="canModify(appt)" class="mt-3 pt-3 border-t border-gray-100 flex gap-3">
             <button
               v-if="rescheduling !== appt.id"
-              class="text-xs text-blue-600 hover:underline"
+              class="btn-secondary btn-sm"
               @click="startReschedule(appt.id)"
             >
               Reschedule
             </button>
             <button
-              class="text-xs text-red-600 hover:underline"
+              class="btn-danger btn-sm"
               :disabled="cancelling === appt.id"
               @click="cancelAppointment(appt.id)"
             >
@@ -265,39 +273,42 @@ async function payForAppointment(appointmentId: string) {
           </div>
 
           <!-- Reschedule form -->
-          <div v-if="rescheduling === appt.id" class="mt-3 border-t pt-3">
-            <div class="flex gap-2 items-end">
-              <div>
-                <label class="block text-xs text-gray-500 mb-1">New Date</label>
+          <div v-if="rescheduling === appt.id" class="mt-4 card bg-warm-50 p-4">
+            <p class="text-sm font-medium text-gray-700 mb-3">Choose a new date and time</p>
+            <div class="flex flex-wrap gap-3 items-end">
+              <div class="flex-1 min-w-[140px]">
+                <label class="block text-xs font-medium text-gray-500 mb-1">New Date</label>
                 <input
                   v-model="rescheduleDate"
                   type="date"
-                  class="border rounded px-2 py-1 text-sm"
+                  class="input-field"
                   :min="new Date().toISOString().split('T')[0]"
                 />
               </div>
-              <div>
-                <label class="block text-xs text-gray-500 mb-1">New Time</label>
+              <div class="flex-1 min-w-[140px]">
+                <label class="block text-xs font-medium text-gray-500 mb-1">New Time</label>
                 <input
                   v-model="rescheduleTime"
                   type="time"
-                  class="border rounded px-2 py-1 text-sm"
+                  class="input-field"
                 />
               </div>
-              <button
-                class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
-                @click="confirmReschedule(appt.id)"
-              >
-                Confirm
-              </button>
-              <button
-                class="text-sm text-gray-500 hover:underline"
-                @click="rescheduling = null"
-              >
-                Cancel
-              </button>
+              <div class="flex gap-2">
+                <button
+                  class="btn-primary btn-sm"
+                  @click="confirmReschedule(appt.id)"
+                >
+                  Confirm
+                </button>
+                <button
+                  class="btn-secondary btn-sm"
+                  @click="rescheduling = null"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
-            <p v-if="rescheduleError" class="text-red-600 text-xs mt-1">{{ rescheduleError }}</p>
+            <p v-if="rescheduleError" class="alert-error mt-3">{{ rescheduleError }}</p>
           </div>
         </div>
       </div>
@@ -305,24 +316,27 @@ async function payForAppointment(appointmentId: string) {
 
     <!-- Past Appointments -->
     <div>
-      <h2 class="text-xl font-semibold mb-4">Past Appointments</h2>
+      <h2 class="text-xl font-bold text-gray-900 mb-4">Past Appointments</h2>
 
-      <div v-if="past.length === 0" class="border rounded-lg p-5">
-        <p class="text-sm text-gray-500">No past appointments.</p>
+      <div v-if="past.length === 0" class="card p-8 text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-300 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        <p class="text-sm text-gray-500">No past appointments yet.</p>
       </div>
 
       <div v-else class="space-y-3">
-        <div v-for="appt in past" :key="appt.id" class="border rounded-lg p-4 opacity-75">
+        <div v-for="appt in past" :key="appt.id" class="card p-5 opacity-80">
           <div class="flex justify-between items-start">
             <div>
-              <div class="font-medium">{{ appt.service.name }}</div>
-              <div class="text-sm text-gray-600">{{ appt.dog.name }} · {{ formatDate(appt.dateTime) }}</div>
+              <div class="font-semibold text-gray-900">{{ appt.service.name }}</div>
+              <div class="text-sm text-gray-600 mt-0.5">{{ appt.dog.name }} · {{ formatDate(appt.dateTime) }}</div>
             </div>
-            <div class="flex flex-col items-end gap-1">
-              <span :class="statusBadgeClass(appt.status)" class="text-xs px-2 py-1 rounded-full font-medium">
+            <div class="flex flex-col items-end gap-1.5">
+              <span :class="statusBadgeClass(appt.status)" class="badge">
                 {{ appt.status }}
               </span>
-              <span v-if="appt.payment" :class="paymentBadgeClass(appt.payment.status)" class="text-xs px-2 py-1 rounded-full font-medium">
+              <span v-if="appt.payment" :class="paymentBadgeClass(appt.payment.status)" class="badge">
                 {{ appt.payment.status === 'PAID' ? 'Paid' : appt.payment.status }}
               </span>
             </div>
@@ -330,7 +344,7 @@ async function payForAppointment(appointmentId: string) {
           <div v-if="getInvoiceNumber(appt)" class="mt-2">
             <a
               :href="`/api/invoices/${getInvoiceNumber(appt)}`"
-              class="text-xs text-brand-blue-dark hover:underline"
+              class="text-sm font-medium text-brand-blue-dark hover:text-brand-blue transition-colors"
             >
               Invoice {{ getInvoiceNumber(appt) }}
             </a>
