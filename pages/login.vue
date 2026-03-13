@@ -92,6 +92,11 @@ async function onSubmit() {
           </button>
         </form>
 
+        <p class="mt-4 text-center text-sm text-gray-500">
+          Forgot your password?
+          <NuxtLink to="/forgot-password" class="text-brand-blue font-medium hover:underline">Reset it</NuxtLink>
+        </p>
+
         <p class="mt-6 text-center text-sm text-gray-500">
           Don't have an account?
           <NuxtLink to="/register" class="text-brand-blue font-medium hover:underline">Register</NuxtLink>

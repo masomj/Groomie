@@ -30,6 +30,7 @@
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/pdfkit": "^0.17.5",
+    "@vitest/coverage-v8": "^4.1.0",
     "prisma": "^6.19.2",
     "tsx": "^4.21.0",
     "vitest": "^4.1.0"

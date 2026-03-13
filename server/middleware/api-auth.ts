@@ -7,6 +7,8 @@ const PUBLIC_API_PATHS = new Set([
   '/api/auth/register',
   '/api/auth/logout',
   '/api/auth/me',
+  '/api/auth/forgot-password',
+  '/api/auth/reset-password',
   '/api/services',
   '/api/availability',
   '/api/leads',
